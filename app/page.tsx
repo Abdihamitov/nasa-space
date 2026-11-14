@@ -185,6 +185,14 @@ export default async function HomePage() {
               <span className="h-1 w-1 rounded-full bg-slate-700" />
               <span>4 {L(locale, "источника", "sources")}</span>
             </div>
+            <a
+              href={process.env.NEXT_PUBLIC_TEAM_URL || "https://www.spaceappschallenge.org/2026/find-a-team/2317/?tab=members"}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-5 inline-flex items-center gap-1 text-[10px] text-slate-500 transition hover:text-aurora-300"
+            >
+              Team K2 · NASA Space Apps Challenge 2026 <ArrowUpRight className="h-3 w-3" />
+            </a>
           </div>
         </div>
       </section>

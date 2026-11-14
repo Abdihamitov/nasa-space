@@ -346,7 +346,10 @@ RLS: catalog tables are public-read; analytics tables are service-role only.
 
 ## 10. Deploy to Vercel
 
-1. Push the repository to GitHub.
+**One-click import:**  
+https://vercel.com/new/clone?repository-url=https://github.com/Abdihamitov/nasa-space&project-name=k2
+
+1. Push the repository to GitHub (already done: `Abdihamitov/nasa-space`).
 2. Vercel → **New Project** → import the repository.
 3. Framework: **Next.js**. Build command: `npm run build`.
 4. Add environment variables:
