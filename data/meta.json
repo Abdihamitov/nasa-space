@@ -1,0 +1,32 @@
+{
+  "generatedAt": "2026-11-14T19:33:48.461391Z",
+  "period": {
+    "from": 2000,
+    "to": 2025
+  },
+  "seriesCount": 283,
+  "objectCount": 20,
+  "gridCount": 40,
+  "sources": [
+    {
+      "name": "NASA POWER",
+      "what": "температура, осадки, почвенная влага, испарение, снег (MERRA-2 / GLDAS / GPM IMERG)",
+      "url": "https://power.larc.nasa.gov/"
+    },
+    {
+      "name": "NOAA NCEI / GML",
+      "what": "глобальная температура и CO₂",
+      "url": "https://www.ncei.noaa.gov/"
+    },
+    {
+      "name": "GeoBoundaries",
+      "what": "границы регионов (ODbL)",
+      "url": "https://www.geoboundaries.org/"
+    },
+    {
+      "name": "Zhang et al., 2022",
+      "what": "опорные значения уровня Иссык-Куля (реконструкция)",
+      "url": "https://doi.org/10.3390/rs14071575"
+    }
+  ]
+}
