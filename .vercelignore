@@ -1,0 +1,13 @@
+.env
+.env.local
+API.txt
+*.pdf
+final tz.md
+node_modules
+.next
+.vercel
+etl
+scripts
+supabase
+public/screenshot-*.webp
+data/geo/*.geojson

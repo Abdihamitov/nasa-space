@@ -6,6 +6,7 @@ K2 is an MVP platform for the **NASA Space Apps Challenge 2026** (track *Be an E
 
 **Team K2:** [spaceappschallenge.org/2026/find-a-team/2317](https://www.spaceappschallenge.org/2026/find-a-team/2317/?tab=members)  
 **Repository:** [github.com/Abdihamitov/nasa-space](https://github.com/Abdihamitov/nasa-space)  
+**Live demo:** [k2-earth.vercel.app](https://k2-earth.vercel.app)  
 **Interface languages:** Russian + English (RU/EN switch in the header).
 
 ![K2 — home](public/screenshot-home.webp)
@@ -314,6 +315,7 @@ Node.js 20+ (tested on 22). Python 3.10+ only for the ETL.
 | `SUPABASE_SERVICE_ROLE_KEY` | For Supabase | Server-only analytics/seed |
 | `EARTHDATA_API_KEY` | No | Future NASA ETL adapters |
 | `EARTHDATA_TOKEN` | No | Future NASA ETL adapters |
+| `VERCEL_TOKEN` | No | Manual CLI deploys only; never expose |
 
 ---
 
@@ -345,6 +347,9 @@ RLS: catalog tables are public-read; analytics tables are service-role only.
 ---
 
 ## 10. Deploy to Vercel
+
+**Live production:** https://k2-earth.vercel.app  
+The Vercel project is linked to this GitHub repository; every push to `main` deploys automatically.
 
 **One-click import:**  
 https://vercel.com/new/clone?repository-url=https://github.com/Abdihamitov/nasa-space&project-name=k2
