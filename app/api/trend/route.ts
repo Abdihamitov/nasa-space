@@ -16,7 +16,7 @@ export async function GET(req: Request) {
     return apiError("not_found", "Объект или переменная не найдены.", 404);
   }
   const period = clampPeriod(getParam(url, "from"), getParam(url, "to"));
-  const payload = analyzeByCode(object, variable, period.from, period.to);
+  const payload = analyzeByCode(object, variable, period.from, period.to, { projection: true });
   if (!payload) {
     return apiError("no_data", "Для этой пары объект × переменная нет данных.", 404);
   }

@@ -3,6 +3,8 @@ import {
   benjaminiHochberg,
   hamedRao,
   mannKendall,
+  mulberry32,
+  yearsToSignificance,
   normalCdf,
   seasonalMannKendall,
   senSlope,
@@ -141,5 +143,59 @@ describe("reference values vs pymannkendall", () => {
     expect(hr.z).toBeCloseTo(2.118035, 5);
     expect(hr.p).toBeCloseTo(0.034172, 5);
     expect(hr.applied).toBe(true);
+  });
+});
+
+// Straightforward reference: re-runs the full Mann–Kendall on every simulated
+// series. The optimised yearsToSignificance must give identical results.
+function yearsToSignificanceReference(
+  years: number[],
+  values: number[],
+  slope: number,
+  intercept: number,
+  maxYear = 2050,
+) {
+  const lastYear = years[years.length - 1];
+  const residuals = values.map((v, i) => v - (intercept + slope * years[i]));
+  const rng = mulberry32(20261114);
+  const B = 160;
+  for (let y = lastYear + 1; y <= maxYear; y++) {
+    let hits = 0;
+    for (let b = 0; b < B; b++) {
+      const extended = [...values];
+      for (let yy = lastYear + 1; yy <= y; yy++) {
+        extended.push(intercept + slope * yy + residuals[Math.floor(rng() * residuals.length)]);
+      }
+      const mk = mannKendall(extended);
+      if (mk.p < 0.05 && Math.sign(mk.s) === Math.sign(slope)) hits++;
+    }
+    if (hits / B >= 0.5) return { year: y, probability: hits / B };
+  }
+  return { year: null, probability: null };
+}
+
+describe("yearsToSignificance", () => {
+  const rng = mulberry32(7);
+  const cases: { years: number[]; values: number[] }[] = [];
+  for (let c = 0; c < 12; c++) {
+    const n = 12 + c * 2;
+    const years = Array.from({ length: n }, (_, i) => 2000 + i);
+    // Rounded values make ties (including ties with simulated points) likely.
+    const values = years.map((y, i) => Math.round((0.02 * c * i + (rng() - 0.5) * 3) * 4) / 4);
+    cases.push({ years, values });
+  }
+  cases.push({ years: ENILCHEK_SNOW_DAYS.map((_, i) => 2000 + i), values: ENILCHEK_SNOW_DAYS });
+
+  it("matches the full Mann–Kendall reference on every simulated series", () => {
+    let projected = 0;
+    for (const { years, values } of cases) {
+      const sen = senSlope(years, values);
+      if (!Number.isFinite(sen.slope) || sen.slope === 0) continue;
+      const fast = yearsToSignificance(years, values, sen.slope, sen.intercept, 1);
+      const ref = yearsToSignificanceReference(years, values, sen.slope, sen.intercept);
+      expect({ year: fast.year, probability: fast.probability }).toEqual(ref);
+      projected++;
+    }
+    expect(projected).toBeGreaterThan(5);
   });
 });

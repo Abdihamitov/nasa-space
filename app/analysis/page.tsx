@@ -9,7 +9,7 @@ import { AnalysisClient } from "@/components/analysis/AnalysisClient";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 const load = cache((object: string, variable: string, from: number, to: number) => {
-  const payload = analyzeByCode(object, variable, from, to);
+  const payload = analyzeByCode(object, variable, from, to, { projection: true });
   const chain = payload ? buildChain(object, variable, from, to) : null;
   return { payload, chain };
 });
