@@ -2,7 +2,7 @@ import { getObject, getObjectsWithVariable, getVariable } from "./catalog";
 import { formatNumberEn, formatPEn, slopeUnitEn } from "./format";
 import { analyzeByCode, clampPeriod, formatNumber, formatP, periodLabel, slopeDisplayScale, slopePrecision, slopeUnit } from "./trend";
 import { benjaminiHochberg } from "./stats";
-import type { CatalogObject, TrendPayload } from "./types";
+import type { CatalogObject, TrendPayload, TrendStats } from "./types";
 
 function std(values: number[]): number {
   if (values.length < 2) return 0;
@@ -207,6 +207,53 @@ export function buildTrendTable(
   });
   rows.sort((a, b) => Math.abs(b.norm) - Math.abs(a.norm));
   return { variable: variableCode, period, rows, tests: payloads.length };
+}
+
+/**
+ * Narrow view of the trend table for the /compare page. The full rows carry
+ * the whole TrendPayload (monthly series, texts in two languages, ~21 KB per
+ * row); the table and its CSV export only need these fields. Keeping the RSC
+ * payload small matters because it is sent on every navigation and refresh.
+ */
+export type TrendTableViewRow = {
+  object: Pick<CatalogObject, "code" | "name" | "nameEn" | "region" | "type">;
+  stats: Pick<TrendStats, "direction" | "confidence" | "senSlope" | "p" | "coverage">;
+  norm: number;
+  q: number | null;
+};
+
+export type TrendTableView = {
+  variable: string;
+  period: { from: number; to: number };
+  rows: TrendTableViewRow[];
+  tests: number;
+};
+
+export function toTrendTableView(table: ReturnType<typeof buildTrendTable>): TrendTableView | null {
+  if (!table) return null;
+  return {
+    variable: table.variable,
+    period: table.period,
+    tests: table.tests,
+    rows: table.rows.map(({ object, payload, norm, q }) => ({
+      object: {
+        code: object.code,
+        name: object.name,
+        nameEn: object.nameEn,
+        region: object.region,
+        type: object.type,
+      },
+      stats: {
+        direction: payload.stats.direction,
+        confidence: payload.stats.confidence,
+        senSlope: payload.stats.senSlope,
+        p: payload.stats.p,
+        coverage: payload.stats.coverage,
+      },
+      norm,
+      q,
+    })),
+  };
 }
 
 export function compareSummaryLine(result: CompareResult): string {

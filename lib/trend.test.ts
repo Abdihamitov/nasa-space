@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { analyzeByCode } from "./trend";
 import { buildChain } from "./chain";
-import { autoCompare, buildTrendTable } from "./compare";
+import { autoCompare, buildTrendTable, toTrendTableView } from "./compare";
 import { buildPhenomenonMap } from "./phenomena";
 
 describe("K2 trend engine on the real cube", () => {
@@ -58,6 +58,13 @@ describe("K2 trend engine on the real cube", () => {
     for (const row of t!.rows) {
       if (row.q !== null) expect(row.q).toBeGreaterThanOrEqual(0);
     }
+  });
+
+  it("keeps the /compare table view small", () => {
+    const view = toTrendTableView(buildTrendTable("t2m", 2000, 2025));
+    expect(view!.rows.length).toBeGreaterThan(10);
+    expect(JSON.stringify(view).length).toBeLessThan(30_000);
+    expect(view!.rows[0]).not.toHaveProperty("payload");
   });
 
   it("highlights at least five objects for global warming", () => {

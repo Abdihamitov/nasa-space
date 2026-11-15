@@ -28,10 +28,10 @@ import { useLocale } from "@/components/i18n/LocaleProvider";
 import { L, pickName } from "@/lib/i18n";
 import { formatNumber, formatNumberEn, formatP, formatPEn, formatSigned, formatSignedEn, slopeDisplayScale, slopePrecision, slopeUnit, slopeUnitEn } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { CompareResult, TrendTableRow } from "@/lib/compare";
+import type { CompareResult, TrendTableView } from "@/lib/compare";
 import type { Variable } from "@/lib/types";
 
-type Table = { variable: string; period: { from: number; to: number }; rows: TrendTableRow[]; tests: number } | null;
+type Table = TrendTableView | null;
 
 const TYPES = [
   { value: "", ru: "Все типы", en: "All types" },
@@ -102,10 +102,10 @@ export function CompareClient({
     list.sort((a, b) => {
       let cmp = 0;
       if (sortKey === "name") cmp = a.object.name.localeCompare(b.object.name, "ru");
-      else if (sortKey === "slope") cmp = Math.abs(a.payload.stats.senSlope) - Math.abs(b.payload.stats.senSlope);
-      else if (sortKey === "p") cmp = a.payload.stats.p - b.payload.stats.p;
+      else if (sortKey === "slope") cmp = Math.abs(a.stats.senSlope) - Math.abs(b.stats.senSlope);
+      else if (sortKey === "p") cmp = a.stats.p - b.stats.p;
       else if (sortKey === "q") cmp = (a.q ?? 1) - (b.q ?? 1);
-      else cmp = a.payload.stats.coverage - b.payload.stats.coverage;
+      else cmp = a.stats.coverage - b.stats.coverage;
       return sortDir === "asc" ? cmp : -cmp;
     });
     return list;
@@ -159,20 +159,20 @@ export function CompareClient({
     const header = ["object", "region", "type", "direction", "confidence", "sen_slope", "unit", "p", "q", "coverage"];
     const lines = [header.join(",")];
     for (const r of rows) {
-      const scale = slopeDisplayScale(r.payload.variable);
-      const slope = (r.payload.stats.senSlope * scale).toFixed(5);
+      const scale = slopeDisplayScale(variable);
+      const slope = (r.stats.senSlope * scale).toFixed(5);
       lines.push(
         [
           `"${r.object.name.replace(/"/g, '""')}"`,
           `"${r.object.region.replace(/"/g, '""')}"`,
           r.object.type,
-          r.payload.stats.direction,
-          r.payload.stats.confidence,
+          r.stats.direction,
+          r.stats.confidence,
           slope,
-          `"${slopeUnit(r.payload.variable)}"`,
-          r.payload.stats.p.toFixed(6),
+          `"${slopeUnit(variable)}"`,
+          r.stats.p.toFixed(6),
           r.q !== null ? r.q.toFixed(6) : "",
-          (r.payload.stats.coverage * 100).toFixed(1),
+          (r.stats.coverage * 100).toFixed(1),
         ].join(","),
       );
     }
@@ -456,8 +456,8 @@ export function CompareClient({
             </thead>
             <tbody>
               {rows.map((r) => {
-                const scale = slopeDisplayScale(r.payload.variable);
-                const sp = slopePrecision(r.payload.stats.senSlope, r.payload.variable);
+                const scale = slopeDisplayScale(variable);
+                const sp = slopePrecision(r.stats.senSlope, variable);
                 const isA = r.object.code === compare.a.object.code;
                 const isB = r.object.code === compare.b.object.code;
                 return (
@@ -478,14 +478,14 @@ export function CompareClient({
                       </div>
                       <div className="text-[9px] text-slate-600">{r.object.region}</div>
                     </td>
-                    <td className="px-4 py-2.5"><TrendBadge direction={r.payload.stats.direction} confidence={r.payload.stats.confidence} compact /></td>
+                    <td className="px-4 py-2.5"><TrendBadge direction={r.stats.direction} confidence={r.stats.confidence} compact /></td>
                     <td className="px-4 py-2.5 font-mono text-[10px] text-slate-300">
-                      {locale === "en" ? formatSignedEn(r.payload.stats.senSlope * scale, sp) : formatSigned(r.payload.stats.senSlope * scale, sp)}
-                      <span className="ml-1 text-[8px] text-slate-600">{locale === "en" ? slopeUnitEn(r.payload.variable) : slopeUnit(r.payload.variable)}</span>
+                      {locale === "en" ? formatSignedEn(r.stats.senSlope * scale, sp) : formatSigned(r.stats.senSlope * scale, sp)}
+                      <span className="ml-1 text-[8px] text-slate-600">{locale === "en" ? slopeUnitEn(variable) : slopeUnit(variable)}</span>
                     </td>
-                    <td className="px-4 py-2.5 font-mono text-[10px] text-slate-400">{pf(r.payload.stats.p)}</td>
+                    <td className="px-4 py-2.5 font-mono text-[10px] text-slate-400">{pf(r.stats.p)}</td>
                     <td className="px-4 py-2.5 font-mono text-[10px] text-slate-400">{r.q !== null ? pf(r.q) : "—"}</td>
-                    <td className="px-4 py-2.5 font-mono text-[10px] text-slate-400">{Math.round(r.payload.stats.coverage * 100)}%</td>
+                    <td className="px-4 py-2.5 font-mono text-[10px] text-slate-400">{Math.round(r.stats.coverage * 100)}%</td>
                   </tr>
                 );
               })}

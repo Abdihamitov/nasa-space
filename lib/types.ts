@@ -249,10 +249,13 @@ export type ChainResult = {
   caveatEn: string;
 };
 
+/** The subset of TrendStats that map markers display (keeps the payload small). */
+export type MarkerTrend = Pick<TrendStats, "direction" | "confidence" | "senSlope" | "p" | "q">;
+
 export type MapMarker = {
   object: CatalogObject;
   variable: Variable;
-  trend: TrendStats;
+  trend: MarkerTrend;
   strength: number;
   q: number | null;
   href: string;
