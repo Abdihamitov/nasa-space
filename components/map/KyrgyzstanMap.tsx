@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { geoConicEqualArea, geoGraticule10, geoPath } from "d3-geo";
 import { cn } from "@/lib/utils";
 import { formatP, slopeUnit } from "@/lib/format";
@@ -105,6 +105,21 @@ export function KyrgyzstanMap({
   showLabels?: boolean;
 }) {
   const svgRef = useRef<SVGSVGElement>(null);
+  // Explore points are sized in screen pixels, not viewBox units: on a larger
+  // map they keep their size and the gaps between them grow, so nearby
+  // objects stop overlapping. `unit` = viewBox units per CSS pixel.
+  const [renderedWidth, setRenderedWidth] = useState(360);
+  useEffect(() => {
+    const el = svgRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(([entry]) => {
+      const w = entry.contentRect.width;
+      if (w > 0) setRenderedWidth(w);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const unit = W / renderedWidth;
   const { locale } = useLocale();
   const [hovered, setHovered] = useState<string | null>(null);
 
@@ -285,21 +300,21 @@ export function KyrgyzstanMap({
               >
                 <title>{p.name}</title>
                 {/* Invisible, generous hit area: the map is often rendered small. */}
-                <circle cx={x} cy={y} r={22} fill="transparent" />
-                <circle cx={x} cy={y} r={isSel ? 18 : 13} fill={color} opacity={isSel ? 0.25 : 0.14} />
+                <circle cx={x} cy={y} r={10 * unit} fill="transparent" />
+                <circle cx={x} cy={y} r={(isSel ? 8 : 5.8) * unit} fill={color} opacity={isSel ? 0.25 : 0.14} />
                 <circle
                   className="map-point-dot"
                   cx={x}
                   cy={y}
-                  r={isSel ? 10 : 7.5}
+                  r={(isSel ? 4.5 : 3.4) * unit}
                   fill={color}
                   stroke={isSel ? "#f8fafc" : "#04070d"}
-                  strokeWidth={isSel ? 2.5 : 1.5}
+                  strokeWidth={(isSel ? 1.1 : 0.7) * unit}
                   opacity={isSel ? 1 : 0.9}
                 />
                 {isSel && (
-                  <circle cx={x} cy={y} r={14} fill="none" stroke={color} strokeWidth="2">
-                    <animate attributeName="r" values="13;24;13" dur="2.2s" repeatCount="indefinite" />
+                  <circle cx={x} cy={y} r={6 * unit} fill="none" stroke={color} strokeWidth={0.9 * unit}>
+                    <animate attributeName="r" values={`${6 * unit};${11 * unit};${6 * unit}`} dur="2.2s" repeatCount="indefinite" />
                     <animate attributeName="opacity" values="0.9;0.05;0.9" dur="2.2s" repeatCount="indefinite" />
                   </circle>
                 )}
