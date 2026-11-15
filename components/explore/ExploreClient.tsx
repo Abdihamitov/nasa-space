@@ -20,7 +20,7 @@ import {
   Thermometer,
   Waves,
 } from "lucide-react";
-import { KyrgyzstanMap, type MapPoint } from "@/components/map/KyrgyzstanMap";
+import { KyrgyzstanMap, POINT_TYPES, type MapPoint } from "@/components/map/KyrgyzstanMap";
 import { PeriodSlider, YearSelect } from "@/components/ui/PeriodSlider";
 import { SourceFlags } from "@/components/ui/TrendBadge";
 import { Badge } from "@/components/ui/Badge";
@@ -665,6 +665,14 @@ export function ExploreClient({
               showLabels={false}
               className="rounded-none"
             />
+            <div className="flex flex-wrap gap-x-3 gap-y-1 border-t border-white/[0.06] px-4 py-2 text-[9px] text-slate-400">
+              {POINT_TYPES.filter((t) => mapPoints.some((p) => p.type === t.type)).map((t) => (
+                <span key={t.type} className="inline-flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full" style={{ background: t.color }} />
+                  {L(locale, t.ru, t.en)}
+                </span>
+              ))}
+            </div>
             <div className="border-t border-white/[0.06] px-4 py-2.5 text-[9px] leading-relaxed text-slate-600">
               {section === "global"
                 ? L(locale, "Для глобального контекста выберите «Планета Земля» в списке слева.", "For global context, choose “Planet Earth” in the list on the left.")
