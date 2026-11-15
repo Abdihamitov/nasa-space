@@ -13,6 +13,11 @@ function first(v: string | string[] | undefined): string | null {
   return v ?? null;
 }
 
+function numberParam(v: string | null): number {
+  if (v === null || v.trim() === "") return Number.NaN;
+  return Number(v);
+}
+
 function nearestGrid(lat: number, lon: number) {
   const catalog = getCatalog();
   let best = null as null | (typeof catalog.objects)[number];
@@ -41,8 +46,10 @@ export default async function ExplorePage({
   const sectionRaw = first(sp.section);
   const objectRaw = first(sp.object);
   const variableRaw = first(sp.variable);
-  const latRaw = Number(first(sp.lat));
-  const lonRaw = Number(first(sp.lon));
+  // Number(null) is 0, so a missing lat/lon must not be parsed as a number:
+  // otherwise plain /explore jumps to the grid point nearest to (0, 0).
+  const latRaw = numberParam(first(sp.lat));
+  const lonRaw = numberParam(first(sp.lon));
 
   let section = catalog.sections.find((s) => s.code === sectionRaw)?.code ?? null;
   let object = catalog.objects.find((o) => o.code === objectRaw) ?? null;
