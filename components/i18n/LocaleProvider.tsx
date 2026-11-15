@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { LOCALE_COOKIE, normalizeLocale, type Locale } from "@/lib/i18n";
 
 type LocaleState = {
@@ -19,7 +18,6 @@ export function LocaleProvider({
   initialLocale: Locale;
   children: React.ReactNode;
 }) {
-  const router = useRouter();
   const [locale, setLocaleState] = useState<Locale>(normalizeLocale(initialLocale));
 
   useEffect(() => {
@@ -30,11 +28,12 @@ export function LocaleProvider({
     (next: Locale) => {
       const normalized = normalizeLocale(next);
       setLocaleState(normalized);
+      // The cookie only drives the first server render (layout -> initialLocale).
+      // All localized UI reads the locale from this context, so no
+      // router.refresh() is needed: the switch is instant on every page.
       document.cookie = `${LOCALE_COOKIE}=${normalized}; path=/; max-age=31536000; samesite=lax`;
-      // Server components (home, method) read the cookie; refresh them.
-      router.refresh();
     },
-    [router],
+    [],
   );
 
   const value = useMemo<LocaleState>(
