@@ -577,6 +577,11 @@ export type AnalyzeOptions = {
   projection?: boolean;
 };
 
+// Data are static (data/series.json), so a payload depends only on the
+// arguments. Cached payloads are shared between callers: treat them as
+// read-only and copy before changing anything (see lib/compare.ts).
+const analyzeCache = new LruCache<string, TrendPayload>(500);
+
 export function analyzeByCode(
   objectCode: string,
   variableCode: string,
@@ -584,13 +589,29 @@ export function analyzeByCode(
   toRaw?: string | number | null,
   options: AnalyzeOptions = {},
 ): TrendPayload | null {
+  const requested = clampPeriod(fromRaw, toRaw);
+  const projection = options.projection ?? false;
+  const key = `${objectCode}|${variableCode}|${requested.from}|${requested.to}|${projection ? "p" : "-"}`;
+  const cached = analyzeCache.get(key);
+  if (cached) return cached;
+  const payload = computeAnalysis(objectCode, variableCode, requested, projection);
+  // Unknown codes are cheap to reject and would only evict useful entries.
+  if (payload) analyzeCache.set(key, payload);
+  return payload;
+}
+
+function computeAnalysis(
+  objectCode: string,
+  variableCode: string,
+  requested: { from: number; to: number },
+  projection: boolean,
+): TrendPayload | null {
   const object = getObject(objectCode);
   const variable = getVariable(variableCode);
   if (!object || !variable) return null;
   const series = getSeries(objectCode, variableCode);
   if (!series || series.points.length === 0) return null;
 
-  const requested = clampPeriod(fromRaw, toRaw);
   const firstYear = Number(series.points[0][0].slice(0, 4));
   const lastYear = Number(series.points[series.points.length - 1][0].slice(0, 4));
   const from = Math.max(requested.from, firstYear);
@@ -599,9 +620,7 @@ export function analyzeByCode(
   const annual = aggregateAnnual(series, variable, from, to);
   const qMap = computeQScan(variableCode, from, to);
   const q = qMap.get(objectCode) ?? null;
-  const stats = computeTrendStats(series, variable, annual, monthly, from, to, q, {
-    projection: options.projection ?? false,
-  });
+  const stats = computeTrendStats(series, variable, annual, monthly, from, to, q, { projection });
   stats.summary = buildSummary(object, variable, stats, from, to);
   stats.summaryEn = buildSummaryEn(object, variable, stats, from, to);
   stats.detail = buildDetail(variable, stats, from, to, series.dataset);

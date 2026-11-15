@@ -56,6 +56,15 @@ function differenceSentenceEn(a: TrendPayload, b: TrendPayload): string {
   return `The pair does not give a confident contrast: not both objects are significant (p = ${formatPEn(a.stats.p)} and ${formatPEn(b.stats.p)}). Check the table below — another pair may be stronger.`;
 }
 
+/** Copy of a (cached, shared) payload with the scan-level q-value attached. */
+function withQ(payload: TrendPayload, variable: string, tests: number, q: number): TrendPayload {
+  return {
+    ...payload,
+    stats: { ...payload.stats, q },
+    qContext: { variable, tests, q },
+  };
+}
+
 export function buildCompare(
   variableCode: string,
   aCode: string,
@@ -109,11 +118,11 @@ export function autoCompare(
   }
   if (payloads.length < 2) return null;
 
-  // FDR across the scan
+  // FDR across the scan. Payloads come from the shared analyzeByCode cache,
+  // so attach q to copies instead of mutating them.
   const qs = benjaminiHochberg(payloads.map((p) => p.payload.stats.p));
   payloads.forEach((p, i) => {
-    p.payload.stats.q = qs[i];
-    p.payload.qContext = { variable: variableCode, tests: payloads.length, q: qs[i] };
+    p.payload = withQ(p.payload, variableCode, payloads.length, qs[i]);
   });
 
   const confident = payloads.filter((p) => p.payload.stats.confidence === "confident");
@@ -196,11 +205,9 @@ export function buildTrendTable(
   }
   const qs = benjaminiHochberg(payloads.map((p) => p.payload.stats.p));
   const rows: TrendTableRow[] = payloads.map((p, i) => {
-    p.payload.stats.q = qs[i];
-    p.payload.qContext = { variable: variableCode, tests: payloads.length, q: qs[i] };
     return {
       object: p.object,
-      payload: p.payload,
+      payload: withQ(p.payload, variableCode, payloads.length, qs[i]),
       norm: p.sd > 0 ? p.payload.stats.senSlope / p.sd : 0,
       q: qs[i],
     };
