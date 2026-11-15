@@ -22,6 +22,21 @@ type GeoCollection = { type: "FeatureCollection"; features: GeoFeature[] };
 // a map — twice on the home page.
 const geo = geoJson as unknown as GeoCollection;
 
+/** Point colours by object type (explore map). Exported for the legend. */
+export const POINT_TYPES: { type: string; color: string; ru: string; en: string }[] = [
+  { type: "region", color: "#fbbf24", ru: "области", en: "regions" },
+  { type: "city", color: "#fb923c", ru: "города", en: "cities" },
+  { type: "lake", color: "#38bdf8", ru: "озёра", en: "lakes" },
+  { type: "reservoir", color: "#22d3ee", ru: "водохранилища", en: "reservoirs" },
+  { type: "river", color: "#60a5fa", ru: "реки", en: "rivers" },
+  { type: "glacier", color: "#c4b5fd", ru: "ледники", en: "glaciers" },
+  { type: "grid", color: "#94a3b8", ru: "точка сетки", en: "grid cell" },
+];
+const POINT_COLOR = new Map(POINT_TYPES.map((t) => [t.type, t.color]));
+export function pointColor(type: string): string {
+  return POINT_COLOR.get(type) ?? "#94a3b8";
+}
+
 export type MapPoint = {
   code: string;
   lat: number;
@@ -241,18 +256,22 @@ export function KyrgyzstanMap({
 
         {/* neutral points (explore mode) */}
         <g>
-          {points.map((p) => {
+          {[...points]
+            // Draw the selected point last so its ring is not covered.
+            .sort((a, b) => Number(a.selected || selected === a.code) - Number(b.selected || selected === b.code))
+            .map((p) => {
             const pt = projection([p.lon, p.lat]);
             if (!pt) return null;
             const [x, y] = pt;
             const isSel = p.selected || selected === p.code;
+            const color = pointColor(p.type);
             return (
               <g
                 key={p.code}
                 role="button"
                 tabIndex={0}
                 aria-label={p.name}
-                className="map-marker outline-none"
+                className="map-marker map-point outline-none"
                 onClick={(e) => {
                   e.stopPropagation();
                   onSelect?.(p.code);
@@ -265,20 +284,23 @@ export function KyrgyzstanMap({
                 }}
               >
                 <title>{p.name}</title>
-                <circle cx={x} cy={y} r={isSel ? 9 : 6} fill={isSel ? "#2ee6c8" : "#64748b"} opacity={isSel ? 0.18 : 0.1} />
+                {/* Invisible, generous hit area: the map is often rendered small. */}
+                <circle cx={x} cy={y} r={22} fill="transparent" />
+                <circle cx={x} cy={y} r={isSel ? 18 : 13} fill={color} opacity={isSel ? 0.25 : 0.14} />
                 <circle
+                  className="map-point-dot"
                   cx={x}
                   cy={y}
-                  r={isSel ? 4.5 : 2.8}
-                  fill={isSel ? "#2ee6c8" : "#94a3b8"}
-                  stroke="#04070d"
-                  strokeWidth="1"
-                  opacity={isSel ? 1 : 0.7}
+                  r={isSel ? 10 : 7.5}
+                  fill={color}
+                  stroke={isSel ? "#f8fafc" : "#04070d"}
+                  strokeWidth={isSel ? 2.5 : 1.5}
+                  opacity={isSel ? 1 : 0.9}
                 />
                 {isSel && (
-                  <circle cx={x} cy={y} r={7} fill="none" stroke="#2ee6c8" strokeWidth="1">
-                    <animate attributeName="r" values="6;12;6" dur="2.2s" repeatCount="indefinite" />
-                    <animate attributeName="opacity" values="0.8;0.05;0.8" dur="2.2s" repeatCount="indefinite" />
+                  <circle cx={x} cy={y} r={14} fill="none" stroke={color} strokeWidth="2">
+                    <animate attributeName="r" values="13;24;13" dur="2.2s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.9;0.05;0.9" dur="2.2s" repeatCount="indefinite" />
                   </circle>
                 )}
               </g>
