@@ -14,7 +14,9 @@ import { DataStrip } from "@/components/home/DataStrip";
 import { SectionHeading, Stat } from "@/components/ui/SectionHeading";
 import { Badge } from "@/components/ui/Badge";
 
-export const revalidate = 3600;
+// No `revalidate` here: the root layout reads the locale cookie, so every page
+// is rendered per request anyway. The expensive part (the phenomenon map) is
+// memoized inside buildPhenomenonMap instead.
 
 export default async function HomePage() {
   const locale = await getLocale();
