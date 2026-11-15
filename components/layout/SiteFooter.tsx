@@ -1,11 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowUpRight, Github } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
-import { getLocale } from "@/lib/i18n-server";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 import { L } from "@/lib/i18n";
 
-export async function SiteFooter() {
-  const locale = await getLocale();
+export function SiteFooter() {
+  const { locale } = useLocale();
   return (
     <footer className="mt-24 border-t border-white/[0.07] bg-[#03060b]/60">
       <div className="section py-12">

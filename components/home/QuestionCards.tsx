@@ -1,7 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowUpRight, CloudRain, Droplets, Snowflake, ThermometerSun } from "lucide-react";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { getLocale } from "@/lib/i18n-server";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 import { L } from "@/lib/i18n";
 
 const CARDS = [
@@ -62,8 +64,8 @@ const accents: Record<string, { text: string; border: string; bg: string; stroke
   violet: { text: "text-violet-300", border: "group-hover:border-violet-400/30", bg: "bg-violet-400/10", stroke: "#a78bfa" },
 };
 
-export async function QuestionCards() {
-  const locale = await getLocale();
+export function QuestionCards() {
+  const { locale } = useLocale();
   return (
     <section className="section mt-24 sm:mt-32">
       <SectionHeading

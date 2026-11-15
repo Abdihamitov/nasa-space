@@ -1,5 +1,7 @@
+"use client";
+
 import { ArrowRight, CheckCircle2, MousePointerClick, ScanSearch, Sparkles } from "lucide-react";
-import { getLocale } from "@/lib/i18n-server";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 import { L } from "@/lib/i18n";
 
 const STEPS = [
@@ -37,8 +39,8 @@ const STEPS = [
   },
 ];
 
-export async function HowItWorks() {
-  const locale = await getLocale();
+export function HowItWorks() {
+  const { locale } = useLocale();
   return (
     <section className="section mt-24 sm:mt-32">
       <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
@@ -84,8 +86,8 @@ export async function HowItWorks() {
   );
 }
 
-export async function MethodTeaser() {
-  const locale = await getLocale();
+export function MethodTeaser() {
+  const { locale } = useLocale();
   const cards = [
     {
       k: "Mann–Kendall",

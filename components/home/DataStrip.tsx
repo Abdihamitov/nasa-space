@@ -1,5 +1,7 @@
+"use client";
+
 import { Database, ExternalLink, ShieldCheck } from "lucide-react";
-import { getLocale } from "@/lib/i18n-server";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 import { L } from "@/lib/i18n";
 
 const SOURCES = [
@@ -9,8 +11,8 @@ const SOURCES = [
   { name: "GeoBoundaries", ru: "Границы регионов Кыргызстана, ODbL", en: "Kyrgyzstan region boundaries, ODbL", href: "https://www.geoboundaries.org/" },
 ];
 
-export async function DataStrip() {
-  const locale = await getLocale();
+export function DataStrip() {
+  const { locale } = useLocale();
   return (
     <section className="section mt-24 sm:mt-32">
       <div className="rounded-3xl border border-white/[0.08] bg-white/[0.02] p-6 sm:p-8">
