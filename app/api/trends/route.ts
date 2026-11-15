@@ -1,4 +1,4 @@
-import { apiError, apiOk, getParam } from "@/lib/api";
+import { apiCached, apiError, getParam } from "@/lib/api";
 import { getVariable } from "@/lib/catalog";
 import { buildTrendTable } from "@/lib/compare";
 
@@ -17,5 +17,5 @@ export async function GET(req: Request) {
     getParam(url, "type"),
   );
   if (!table) return apiError("no_data", "Нет данных для этой переменной.", 404);
-  return apiOk(table);
+  return apiCached(table);
 }

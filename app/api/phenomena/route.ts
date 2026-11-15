@@ -1,4 +1,4 @@
-import { apiError, apiOk, getParam } from "@/lib/api";
+import { apiCached, apiError, getParam } from "@/lib/api";
 import { getPhenomena, getPhenomenon } from "@/lib/catalog";
 import { buildPhenomenonMap, buildPhenomenonObject } from "@/lib/phenomena";
 import { clampPeriod } from "@/lib/trend";
@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   const url = new URL(req.url);
   if (getParam(url, "list") === "1") {
-    return apiOk({ phenomena: getPhenomena() });
+    return apiCached({ phenomena: getPhenomena() });
   }
   const code = getParam(url, "code");
   if (!code) return apiError("bad_request", "Нужен параметр code или list=1.");
@@ -25,9 +25,9 @@ export async function GET(req: Request) {
       getParam(url, "variable"),
     );
     if (!payload) return apiError("no_data", "Нет данных для этого объекта и явления.", 404);
-    return apiOk(payload);
+    return apiCached(payload);
   }
   const map = buildPhenomenonMap(code, period.from, period.to);
   if (!map) return apiError("no_data", "Нет данных для этого явления.", 404);
-  return apiOk(map);
+  return apiCached(map);
 }

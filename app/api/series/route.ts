@@ -1,4 +1,4 @@
-import { apiError, apiOk, getParam } from "@/lib/api";
+import { apiCached, apiError, getParam } from "@/lib/api";
 import { getObject, getVariable } from "@/lib/catalog";
 import { analyzeByCode, clampPeriod } from "@/lib/trend";
 
@@ -21,7 +21,7 @@ export async function GET(req: Request) {
   if (!payload) {
     return apiError("no_data", "Для этой пары объект × переменная нет данных.", 404);
   }
-  return apiOk({
+  return apiCached({
     object: payload.object,
     variable: payload.variable,
     period: payload.period,

@@ -1,4 +1,4 @@
-import { apiError, apiOk, getParam } from "@/lib/api";
+import { apiCached, apiError, getParam } from "@/lib/api";
 import { getVariable } from "@/lib/catalog";
 import { autoCompare, buildCompare, buildTrendTable } from "@/lib/compare";
 import { clampPeriod } from "@/lib/trend";
@@ -23,5 +23,5 @@ export async function GET(req: Request) {
   }
   if (!compare) return apiError("no_data", "Не удалось подобрать пару для сравнения.", 404);
   const table = buildTrendTable(variable, period.from, period.to, getParam(url, "type"));
-  return apiOk({ compare, table });
+  return apiCached({ compare, table });
 }
