@@ -7,6 +7,7 @@ import { formatP, slopeUnit } from "@/lib/format";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { L, pickName } from "@/lib/i18n";
 import type { MapMarker } from "@/lib/types";
+import geoJson from "@/data/geo/kyrgyzstan.json";
 
 type GeoFeature = {
   type: "Feature";
@@ -14,6 +15,12 @@ type GeoFeature = {
   geometry: unknown;
 };
 type GeoCollection = { type: "FeatureCollection"; features: GeoFeature[] };
+
+// Imported here (not passed as a prop from server components) so the
+// geometry ships once in this module's JS chunk, which the browser caches,
+// instead of being serialized into the RSC payload of every page that shows
+// a map — twice on the home page.
+const geo = geoJson as unknown as GeoCollection;
 
 export type MapPoint = {
   code: string;
@@ -64,7 +71,6 @@ function markerOpacity(marker: MapMarker): number {
 }
 
 export function KyrgyzstanMap({
-  geo,
   markers,
   points = [],
   selected,
@@ -74,7 +80,6 @@ export function KyrgyzstanMap({
   variant = "full",
   showLabels = true,
 }: {
-  geo: GeoCollection;
   markers: MapMarker[];
   points?: MapPoint[];
   selected?: string | null;
@@ -101,7 +106,7 @@ export function KyrgyzstanMap({
       geo as never,
     );
     return p;
-  }, [geo]);
+  }, []);
 
   const path = useMemo(() => geoPath(projection), [projection]);
   // SVG path strings depend only on the geometry and projection. Compute them

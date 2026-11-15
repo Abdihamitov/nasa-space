@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import geoJson from "@/data/geo/kyrgyzstan.json";
 import { getCatalog } from "@/lib/catalog";
 import { clampPeriod } from "@/lib/trend";
 import { ExploreClient } from "@/components/explore/ExploreClient";
@@ -8,8 +7,6 @@ export const metadata: Metadata = {
   title: "Исследовать",
   description: "Пошаговый выбор: раздел → место → параметр → период. Анализ климатического тренда Кыргызстана.",
 };
-
-type Geo = { type: "FeatureCollection"; features: { type: "Feature"; properties: { name: string; nameEn: string; code: string }; geometry: unknown }[] };
 
 function first(v: string | string[] | undefined): string | null {
   if (Array.isArray(v)) return v[0] ?? null;
@@ -40,7 +37,6 @@ export default async function ExplorePage({
 }) {
   const sp = await searchParams;
   const catalog = getCatalog();
-  const geo = geoJson as unknown as Geo;
 
   const sectionRaw = first(sp.section);
   const objectRaw = first(sp.object);
@@ -85,5 +81,5 @@ export default async function ExplorePage({
     lon: object?.isGrid ? object.lon : Number.isFinite(lonRaw) ? lonRaw : null,
   };
 
-  return <ExploreClient catalog={catalog} geo={geo} initial={initial} />;
+  return <ExploreClient catalog={catalog} initial={initial} />;
 }
