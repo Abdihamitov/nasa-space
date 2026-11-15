@@ -104,7 +104,14 @@ export function KyrgyzstanMap({
   }, [geo]);
 
   const path = useMemo(() => geoPath(projection), [projection]);
-  const graticule = useMemo(() => geoGraticule10(), []);
+  // SVG path strings depend only on the geometry and projection. Compute them
+  // once instead of on every render (hover changes re-render the whole map),
+  // and reuse the same string for the glow and fill layers.
+  const graticulePath = useMemo(() => path(geoGraticule10()) ?? "", [path]);
+  const regionPaths = useMemo(
+    () => geo.features.map((f) => ({ code: f.properties.code, d: path(f as never) ?? "" })),
+    [geo, path],
+  );
 
   const projected = useMemo(() => {
     const map = new Map<string, [number, number]>();
@@ -196,24 +203,23 @@ export function KyrgyzstanMap({
 
         <rect width={W} height={H} fill="url(#map-bg)" />
         <rect width={W} height={H} fill="url(#map-grid)" opacity="0.55" />
-        <path d={path(graticule) ?? ""} fill="none" stroke="rgba(148,163,184,0.09)" strokeWidth="0.6" strokeDasharray="2 5" />
+        <path d={graticulePath} fill="none" stroke="rgba(148,163,184,0.09)" strokeWidth="0.6" strokeDasharray="2 5" />
 
         {/* country silhouette glow */}
         <g opacity="0.35" filter="url(#soft-glow)">
-          {geo.features.map((f) => (
-            <path key={`glow-${f.properties.code}`} d={path(f as never) ?? ""} fill="#0aa38f" />
+          {regionPaths.map(({ code, d }) => (
+            <path key={`glow-${code}`} d={d} fill="#0aa38f" />
           ))}
         </g>
 
         {/* regions */}
         <g>
-          {geo.features.map((f) => {
-            const code = f.properties.code;
+          {regionPaths.map(({ code, d }) => {
             const isActive = selected === code;
             return (
               <path
                 key={code}
-                d={path(f as never) ?? ""}
+                d={d}
                 className={cn("region-path", isActive && "is-active")}
                 fill="url(#region-fill)"
                 stroke="url(#country-stroke)"
