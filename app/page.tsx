@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Compass, Database, Globe2, Layers, Sparkles } from "lucide-react";
-import geoJson from "@/data/geo/kyrgyzstan.json";
 import { getCatalog, getMeta, getPhenomena } from "@/lib/catalog";
 import { getLocale } from "@/lib/i18n-server";
 import { L } from "@/lib/i18n";
@@ -17,14 +16,11 @@ import { Badge } from "@/components/ui/Badge";
 
 export const revalidate = 3600;
 
-type Geo = { type: "FeatureCollection"; features: { type: "Feature"; properties: { name: string; nameEn: string; code: string }; geometry: unknown }[] };
-
 export default async function HomePage() {
   const locale = await getLocale();
   const catalog = getCatalog();
   const meta = getMeta();
   const phenomena = getPhenomena();
-  const geo = geoJson as unknown as Geo;
   const initialMap = buildPhenomenonMap("global-warming", meta.period.from, meta.period.to);
 
   if (!initialMap) {
@@ -89,7 +85,7 @@ export default async function HomePage() {
           </div>
 
           <div className="animate-fade-up animation-delay-200">
-            <HeroMap map={initialMap} geo={geo} />
+            <HeroMap map={initialMap} />
             <div className="mt-3 flex items-center justify-between px-1 text-[9px] text-slate-600">
               <span>{L(locale, "Карта: объекты каталога. Размер точки — сила тренда.", "Map: catalog objects. Dot size reflects trend strength.")}</span>
               <span className="font-mono">ISSUE 01 · 2026</span>
@@ -134,7 +130,7 @@ export default async function HomePage() {
           }
         />
         <div className="mt-8">
-          <HomeExplorer initialMap={initialMap} phenomena={phenomena} geo={geo} period={meta.period} />
+          <HomeExplorer initialMap={initialMap} phenomena={phenomena} period={meta.period} />
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-2 px-1 text-[10px] text-slate-600">
           <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-aurora-400" /> {L(locale, "значимый рост", "significant rise")}</span>

@@ -7,7 +7,7 @@ import { TrendBadge } from "@/components/ui/TrendBadge";
 import { formatNumber, formatP, slopePrecision, slopeUnit } from "@/lib/format";
 import type { PhenomenonMapPayload } from "@/lib/types";
 
-export function HeroMap({ map, geo }: { map: PhenomenonMapPayload; geo: { type: "FeatureCollection"; features: { type: "Feature"; properties: { name: string; nameEn: string; code: string }; geometry: unknown }[] } }) {
+export function HeroMap({ map }: { map: PhenomenonMapPayload }) {
   const top = map.markers[0];
   const scale = top ? (top.variable.unit === "м" ? 100 : 1) : 1;
   const precision = top ? slopePrecision(top.trend.senSlope, top.variable) : 2;
@@ -29,7 +29,7 @@ export function HeroMap({ map, geo }: { map: PhenomenonMapPayload; geo: { type: 
           <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-slate-400">4 источника</span>
         </div>
 
-        <KyrgyzstanMap geo={geo} markers={map.markers} variant="hero" showLabels className="rounded-none" />
+        <KyrgyzstanMap markers={map.markers} variant="hero" showLabels className="rounded-none" />
 
         {top && (
           <div className="absolute bottom-4 left-4 z-10 w-[min(340px,calc(100%-2rem))] rounded-2xl border border-white/[0.12] bg-[#070c14]/90 p-4 shadow-panel backdrop-blur-xl">

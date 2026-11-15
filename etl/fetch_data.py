@@ -1540,7 +1540,6 @@ def main() -> None:
     print("\n[+] GeoJSON boundaries")
     geo = fetch_geojson()
     if geo:
-        (GEO / "kyrgyzstan.geojson").write_text(json.dumps(geo, ensure_ascii=False))
         (GEO / "kyrgyzstan.json").write_text(json.dumps(geo, ensure_ascii=False))
         print(f"  features: {len(geo['features'])}")
     else:
@@ -1675,7 +1674,7 @@ def main() -> None:
     print(f"  series: {len(series)}")
     print(f"  catalog: {DATA / 'catalog.json'} ({(DATA / 'catalog.json').stat().st_size / 1024:.1f} KB)")
     print(f"  series:  {DATA / 'series.json'} ({(DATA / 'series.json').stat().st_size / 1024:.1f} KB)")
-    print(f"  geo:     {GEO / 'kyrgyzstan.geojson'}")
+    print(f"  geo:     {GEO / 'kyrgyzstan.json'}")
 
 
 if __name__ == "__main__":

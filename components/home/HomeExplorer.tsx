@@ -28,7 +28,6 @@ import { L, pickName } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import type { Phenomenon, PhenomenonMapPayload, TrendPayload } from "@/lib/types";
 
-type Geo = { type: "FeatureCollection"; features: { type: "Feature"; properties: { name: string; nameEn: string; code: string }; geometry: unknown }[] };
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   flame: Flame,
@@ -49,12 +48,10 @@ function slopeText(payload: TrendPayload, locale: "ru" | "en") {
 export function HomeExplorer({
   initialMap,
   phenomena,
-  geo,
   period,
 }: {
   initialMap: PhenomenonMapPayload;
   phenomena: Phenomenon[];
-  geo: Geo;
   period: { from: number; to: number };
 }) {
   const router = useRouter();
@@ -185,7 +182,6 @@ export function HomeExplorer({
             </div>
           )}
           <KyrgyzstanMap
-            geo={geo}
             markers={map.markers}
             selected={selected}
             onSelect={loadDetail}

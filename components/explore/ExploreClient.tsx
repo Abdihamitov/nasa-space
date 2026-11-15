@@ -31,7 +31,6 @@ import { L, pickName } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import type { Catalog, CatalogObject, SectionCode, Variable } from "@/lib/types";
 
-type Geo = { type: "FeatureCollection"; features: { type: "Feature"; properties: { name: string; nameEn: string; code: string }; geometry: unknown }[] };
 
 const SECTION_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   water: Waves,
@@ -83,11 +82,9 @@ function buildHref(state: {
 
 export function ExploreClient({
   catalog,
-  geo,
   initial,
 }: {
   catalog: Catalog;
-  geo: Geo;
   initial: {
     section: string | null;
     object: string | null;
@@ -659,7 +656,6 @@ export function ExploreClient({
               <span className="text-[9px] text-slate-600">{mapPoints.length} точек</span>
             </div>
             <KyrgyzstanMap
-              geo={geo}
               markers={[]}
               points={mapPoints}
               selected={objectCode}
