@@ -424,6 +424,7 @@ export function computeTrendStats(
   from: number,
   to: number,
   q: number | null,
+  options: { projection?: boolean } = {},
 ): TrendStats {
   const nYears = annual.length;
   const expectedYears = to - from + 1;
@@ -492,8 +493,10 @@ export function computeTrendStats(
   }
 
   const changeOverPeriod = sen.slope * (years[years.length - 1] - years[0]);
+  // The Monte-Carlo projection is the most expensive part of the analysis and
+  // is only shown on the single-object analysis view.
   const yts =
-    confidence === "confident"
+    confidence === "confident" || !options.projection
       ? null
       : yearsToSignificance(years, values, sen.slope, sen.intercept, hr.p);
 
@@ -562,11 +565,21 @@ export function computeQScan(variable: string, from: number, to: number): Map<st
   return map;
 }
 
+export type AnalyzeOptions = {
+  /**
+   * Compute the illustrative "years to significance" projection. It costs far
+   * more than the rest of the analysis, so it is off by default and only
+   * enabled where it is displayed (analysis page, /api/trend).
+   */
+  projection?: boolean;
+};
+
 export function analyzeByCode(
   objectCode: string,
   variableCode: string,
   fromRaw?: string | number | null,
   toRaw?: string | number | null,
+  options: AnalyzeOptions = {},
 ): TrendPayload | null {
   const object = getObject(objectCode);
   const variable = getVariable(variableCode);
@@ -583,7 +596,9 @@ export function analyzeByCode(
   const annual = aggregateAnnual(series, variable, from, to);
   const qMap = computeQScan(variableCode, from, to);
   const q = qMap.get(objectCode) ?? null;
-  const stats = computeTrendStats(series, variable, annual, monthly, from, to, q);
+  const stats = computeTrendStats(series, variable, annual, monthly, from, to, q, {
+    projection: options.projection ?? false,
+  });
   stats.summary = buildSummary(object, variable, stats, from, to);
   stats.summaryEn = buildSummaryEn(object, variable, stats, from, to);
   stats.detail = buildDetail(variable, stats, from, to, series.dataset);

@@ -29,6 +29,14 @@ describe("K2 trend engine on the real cube", () => {
     expect(p!.stats.summary).toContain("Недостаточно данных");
   });
 
+  it("computes the projection only when asked", () => {
+    const plain = analyzeByCode("issyk-kul", "lake_level", 2000, 2025);
+    const withProjection = analyzeByCode("issyk-kul", "lake_level", 2000, 2025, { projection: true });
+    expect(plain!.stats.yearsToSignificance).toBeNull();
+    expect(withProjection!.stats.yearsToSignificance).not.toBeNull();
+    expect(withProjection!.stats.p).toBe(plain!.stats.p);
+  });
+
   it("builds the five-link lake hypothesis chain", () => {
     const c = buildChain("issyk-kul", "lake_level", 2000, 2025);
     expect(c).not.toBeNull();

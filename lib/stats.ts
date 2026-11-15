@@ -302,16 +302,78 @@ export function yearsToSignificance(
   const residuals = values.map((v, i) => v - (intercept + slope * years[i]));
   const rng = mulberry32(20261114);
   const B = 160;
+  const n0 = values.length;
+  const slopeSign = Math.sign(slope);
+
+  // S and the tie structure of the observed part are shared by every run, so
+  // compute them once. Each simulated point then only adds its own pairs:
+  // against the observed points via binary search on a sorted copy, and
+  // against the other simulated points directly. This replaces the full
+  // O(n²) Mann–Kendall per run and gives exactly the same S and Var(S).
+  let s0 = 0;
+  for (let i = 0; i < n0 - 1; i++) {
+    for (let j = i + 1; j < n0; j++) s0 += Math.sign(values[j] - values[i]);
+  }
+  const tieTerm = (t: number) => t * (t - 1) * (2 * t + 5);
+  let baseTieTerm = 0;
+  for (const t of tieCounts(values)) baseTieTerm += tieTerm(t);
+  const sorted = [...values].sort((a, b) => a - b);
+  // Number of observed values strictly below / above x.
+  const countBelow = (x: number) => {
+    let lo = 0;
+    let hi = n0;
+    while (lo < hi) {
+      const mid = (lo + hi) >>> 1;
+      if (sorted[mid] < x) lo = mid + 1;
+      else hi = mid;
+    }
+    return lo;
+  };
+  const countAbove = (x: number) => {
+    let lo = 0;
+    let hi = n0;
+    while (lo < hi) {
+      const mid = (lo + hi) >>> 1;
+      if (sorted[mid] <= x) lo = mid + 1;
+      else hi = mid;
+    }
+    return n0 - lo;
+  };
+
+  const simulated = new Array<number>(maxYear - lastYear);
+
   for (let y = lastYear + 1; y <= maxYear; y++) {
     let hits = 0;
+    const n = n0 + (y - lastYear);
+    const varBase = n * (n - 1) * (2 * n + 5);
     for (let b = 0; b < B; b++) {
-      const extended = [...values];
-      for (let yy = lastYear + 1; yy <= y; yy++) {
+      let s = s0;
+      let ties = baseTieTerm;
+      for (let yy = lastYear + 1, k = 0; yy <= y; yy++, k++) {
         const r = residuals[Math.floor(rng() * residuals.length)];
-        extended.push(intercept + slope * yy + r);
+        const x = intercept + slope * yy + r;
+        const below = countBelow(x);
+        const above = countAbove(x);
+        s += below - above;
+        // c = how many earlier points (observed + simulated) equal x.
+        let c = n0 - below - above;
+        for (let i = 0; i < k; i++) {
+          const d = x - simulated[i];
+          if (d > 0) s++;
+          else if (d < 0) s--;
+          else c++;
+        }
+        simulated[k] = x;
+        if (c > 0) ties += tieTerm(c + 1) - tieTerm(c);
       }
-      const mk = mannKendall(extended);
-      if (mk.p < 0.05 && Math.sign(mk.s) === Math.sign(slope)) hits++;
+      // Same decision rule as mannKendall(extended).
+      const varS = (varBase - ties) / 18;
+      if (varS <= 0) continue;
+      let z = 0;
+      if (s > 0) z = (s - 1) / Math.sqrt(varS);
+      else if (s < 0) z = (s + 1) / Math.sqrt(varS);
+      const p = Math.min(1, Math.max(0, 2 * (1 - normalCdf(Math.abs(z)))));
+      if (p < 0.05 && Math.sign(s) === slopeSign) hits++;
     }
     const prob = hits / B;
     if (prob >= 0.5) {
