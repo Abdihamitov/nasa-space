@@ -38,6 +38,7 @@ import {
   slopeUnitEn,
   unitEn,
 } from "./format";
+import { LruCache } from "./lru";
 import type {
   AnnualPoint,
   CatalogObject,
@@ -529,8 +530,9 @@ export function computeTrendStats(
   return stats;
 }
 
-// Cache q-value scans briefly (per server instance).
-const qCache = new Map<string, Map<string, number | null>>();
+// q-value scans per variable × period (per server instance). Bounded so a
+// long-lived instance does not keep every combination forever.
+const qCache = new LruCache<string, Map<string, number | null>>(200);
 
 export function computeQScan(variable: string, from: number, to: number): Map<string, number | null> {
   const key = `${variable}|${from}|${to}`;
@@ -549,10 +551,11 @@ export function computeQScan(variable: string, from: number, to: number): Map<st
     if (!s) continue;
     const annual = aggregateAnnual(s, v, from, to);
     if (annual.length < 10) continue;
-    const monthly = monthlySlice(s, from, to);
-    const mk = mannKendall(annual.map((a) => a.value));
-    const sen = senSlope(annual.map((a) => a.year), annual.map((a) => a.value), mk.varS);
-    const hr = hamedRao(annual.map((a) => a.value), mk, sen.slope);
+    const years = annual.map((a) => a.year);
+    const values = annual.map((a) => a.value);
+    const mk = mannKendall(values);
+    const sen = senSlope(years, values, mk.varS);
+    const hr = hamedRao(values, mk, sen.slope);
     entries.push({ object: obj.code, p: hr.p });
   }
   const qs = benjaminiHochberg(entries.map((e) => e.p));
