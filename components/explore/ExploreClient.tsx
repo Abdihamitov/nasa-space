@@ -357,7 +357,7 @@ export function ExploreClient({
         })}
       </div>
 
-      <div className="mt-6 grid gap-5 lg:grid-cols-[1fr_360px]">
+      <div className="mt-6 grid gap-5 lg:grid-cols-[1fr_420px] xl:grid-cols-[1fr_540px]">
         <div className="space-y-5">
           {/* STEP 1 */}
           {step === 1 && (
