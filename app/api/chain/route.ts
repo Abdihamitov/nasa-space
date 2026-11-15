@@ -1,4 +1,4 @@
-import { apiError, apiOk, getParam } from "@/lib/api";
+import { apiCached, apiError, getParam } from "@/lib/api";
 import { getObject, getVariable } from "@/lib/catalog";
 import { buildChain } from "@/lib/chain";
 import { clampPeriod } from "@/lib/trend";
@@ -17,5 +17,5 @@ export async function GET(req: Request) {
   const period = clampPeriod(getParam(url, "from"), getParam(url, "to"));
   const chain = buildChain(object, variable, period.from, period.to);
   if (!chain) return apiError("no_chain", "Для этой переменной нет шаблона цепочки.", 404);
-  return apiOk(chain);
+  return apiCached(chain);
 }

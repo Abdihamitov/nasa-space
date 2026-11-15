@@ -9,11 +9,12 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Cache-Control is deliberately not set here: a header from this config
+        // overrides the one a route sets, which used to force `no-store` on
+        // every endpoint (including /api/catalog). Each route sets its own
+        // policy via apiCached / apiError / explicit headers in lib/api.ts.
         source: "/api/:path*",
-        headers: [
-          { key: "Cache-Control", value: "no-store" },
-          { key: "X-Content-Type-Options", value: "nosniff" },
-        ],
+        headers: [{ key: "X-Content-Type-Options", value: "nosniff" }],
       },
     ];
   },
