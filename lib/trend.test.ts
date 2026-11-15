@@ -56,6 +56,12 @@ describe("K2 trend engine on the real cube", () => {
     if (row) expect(row.payload.qContext.tests).toBe(table!.tests);
   });
 
+  it("memoizes the phenomenon map per phenomenon and period", () => {
+    const a = buildPhenomenonMap("global-warming", 2000, 2025);
+    expect(buildPhenomenonMap("global-warming", "2000", "2025")).toBe(a);
+    expect(buildPhenomenonMap("global-warming", 2001, 2025)).not.toBe(a);
+  });
+
   it("builds the five-link lake hypothesis chain", () => {
     const c = buildChain("issyk-kul", "lake_level", 2000, 2025);
     expect(c).not.toBeNull();

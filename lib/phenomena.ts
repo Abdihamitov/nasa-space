@@ -1,4 +1,5 @@
 import { getObject, getPhenomenon, getVariable } from "./catalog";
+import { LruCache } from "./lru";
 import { analyzeByCode, clampPeriod } from "./trend";
 import type {
   MapMarker,
@@ -14,14 +15,32 @@ function std(values: number[]): number {
   return Math.sqrt(variance);
 }
 
+// The map depends only on the phenomenon, the period and static data, not on
+// the request or locale. Memoizing it keeps the home page (dynamic because the
+// layout reads the locale cookie) and /api/phenomena from recomputing it on
+// every request. Cached payloads are shared: treat them as read-only.
+const mapCache = new LruCache<string, PhenomenonMapPayload>(100);
+
 export function buildPhenomenonMap(
   code: string,
   fromRaw?: string | number | null,
   toRaw?: string | number | null,
 ): PhenomenonMapPayload | null {
+  const period = clampPeriod(fromRaw, toRaw);
+  const key = `${code}|${period.from}|${period.to}`;
+  const cached = mapCache.get(key);
+  if (cached) return cached;
+  const map = computePhenomenonMap(code, period);
+  if (map) mapCache.set(key, map);
+  return map;
+}
+
+function computePhenomenonMap(
+  code: string,
+  period: { from: number; to: number },
+): PhenomenonMapPayload | null {
   const phenomenon = getPhenomenon(code);
   if (!phenomenon) return null;
-  const period = clampPeriod(fromRaw, toRaw);
   const byObject = new Map<string, { objectCode: string; variables: string[] }>();
   for (const link of phenomenon.links) {
     const entry = byObject.get(link.object) ?? { objectCode: link.object, variables: [] };
