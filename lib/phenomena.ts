@@ -2,6 +2,7 @@ import { getObject, getPhenomenon, getVariable } from "./catalog";
 import { analyzeByCode, clampPeriod } from "./trend";
 import type {
   MapMarker,
+  MarkerTrend,
   PhenomenonMapPayload,
   TrendPayload,
 } from "./types";
@@ -56,11 +57,13 @@ export function buildPhenomenonMap(
             ? "weak"
             : "none"
         : best.stats.confidence;
-    const trend = {
-      ...best.stats,
+    const trend: MarkerTrend = {
       confidence: effectiveConfidence,
       direction: effectiveConfidence === "none" ? "flat" : best.stats.direction,
-    } as typeof best.stats;
+      senSlope: best.stats.senSlope,
+      p: best.stats.p,
+      q: best.stats.q,
+    };
     markers.push({
       object,
       variable: best.variable,

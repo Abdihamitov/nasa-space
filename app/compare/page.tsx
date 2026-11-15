@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, GitCompare } from "lucide-react";
 import { getCatalog, getVariable } from "@/lib/catalog";
-import { autoCompare, buildCompare, buildTrendTable } from "@/lib/compare";
+import { autoCompare, buildCompare, buildTrendTable, toTrendTableView } from "@/lib/compare";
 import { clampPeriod } from "@/lib/trend";
 import { CompareClient } from "@/components/compare/CompareClient";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -40,7 +40,7 @@ export default async function ComparePage({
 
   let compare = auto ? autoCompare(variable.code, period.from, period.to, type) : buildCompare(variable.code, a!, b!, period.from, period.to);
   if (!compare) compare = autoCompare(variable.code, period.from, period.to, type);
-  const table = buildTrendTable(variable.code, period.from, period.to, type);
+  const table = toTrendTableView(buildTrendTable(variable.code, period.from, period.to, type));
 
   if (!compare) {
     return (
@@ -64,11 +64,19 @@ export default async function ComparePage({
     );
   }
 
+  // The pair charts render annual points only (showMonthly={false}), so the
+  // monthly series is not sent to the client.
+  const compareView = {
+    ...compare,
+    a: { ...compare.a, monthly: [] },
+    b: { ...compare.b, monthly: [] },
+  };
+
   return (
     <CompareClient
       variable={variable}
       variables={catalog.variables.filter((v) => v.section !== "global")}
-      compare={compare}
+      compare={compareView}
       table={table}
       periodBounds={catalog.meta.period}
       initialType={type}
