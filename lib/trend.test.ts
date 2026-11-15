@@ -37,6 +37,25 @@ describe("K2 trend engine on the real cube", () => {
     expect(withProjection!.stats.p).toBe(plain!.stats.p);
   });
 
+  it("memoizes analyzeByCode by object, variable and period", () => {
+    const a = analyzeByCode("bishkek", "t2m", 2000, 2025);
+    const b = analyzeByCode("bishkek", "t2m", "2000", "2025");
+    expect(b).toBe(a);
+    expect(analyzeByCode("bishkek", "t2m", 2001, 2025)).not.toBe(a);
+    // Projection on/off are separate entries.
+    expect(analyzeByCode("bishkek", "t2m", 2000, 2025, { projection: true })).not.toBe(a);
+  });
+
+  it("does not mutate cached payloads when attaching scan-level q-values", () => {
+    const cached = analyzeByCode("bishkek", "t2m", 2000, 2025)!;
+    const snapshot = JSON.stringify(cached);
+    const table = buildTrendTable("t2m", 2000, 2025, "city");
+    autoCompare("t2m", 2000, 2025, "city");
+    expect(JSON.stringify(analyzeByCode("bishkek", "t2m", 2000, 2025))).toBe(snapshot);
+    const row = table!.rows.find((r) => r.object.code === "bishkek");
+    if (row) expect(row.payload.qContext.tests).toBe(table!.tests);
+  });
+
   it("builds the five-link lake hypothesis chain", () => {
     const c = buildChain("issyk-kul", "lake_level", 2000, 2025);
     expect(c).not.toBeNull();
